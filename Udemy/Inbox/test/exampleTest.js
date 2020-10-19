@@ -12,6 +12,7 @@ class Car
 }
 
 let car;
+
 beforeEach( () =>
 {
     car = new Car();
