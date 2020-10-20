@@ -18,6 +18,7 @@ beforeEach(async () =>
 
 });
 
+
 describe('Inbox', () =>
 {
     it('deploys a contract', () =>
