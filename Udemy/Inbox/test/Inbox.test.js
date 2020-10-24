@@ -6,7 +6,6 @@ const { interface, bytecode } =  require('../compile');
 
 
 let accounts;
-
 let inbox;
 
 beforeEach(async () =>
