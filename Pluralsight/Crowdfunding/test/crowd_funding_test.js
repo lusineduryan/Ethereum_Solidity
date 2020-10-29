@@ -90,4 +90,31 @@ contract('CrowdfundingWithDeadline', function(accounts) {
         let state = contract.state.call();
         expect(state.valueOf()).to.equal(FAILED_STATE);
     })
+
+    it('collected money paid out', async function() {
+        await contract.contribute({value: ONE_ETH, from: contractCreator});
+        await contract.setCurrentTime(601);
+        await contract.finishCrowdFunding();
+
+        let initAmount = await web3.eth.getBalance(beneficiary);
+        await contract.collect({from: contractCreator});
+
+        let newBalance = await web3.eth.getBalance(beneficiary);
+        let difference = newBalance - initAmount;
+        expect(ONE_ETH.isEqualTo(difference)).to.equal(true);
+
+        let fundingState = await contract.state.call()
+        expect(fundingState.valueOf().toNumber()).to.equal(PAID_OUT_STATE);
+    })
+
+    it('withdraw funds from the contract', async function() {
+        await contract.contribute({value: ONE_ETH - 100, from: contractCreator});
+        await contract.setCurrentTime(601);
+        await contract.finishCrowdFunding();
+
+        await contract.withdraw({from: contractCreator});
+        let amount = await contract.amounts.call(contractCreator);
+        expect(amount.toNumber()).to.equal(0);
+    })
+
 });

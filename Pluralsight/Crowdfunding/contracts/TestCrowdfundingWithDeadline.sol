@@ -4,7 +4,7 @@ import "./CrowdfundingWithDeadline.sol";
 contract TestCrowdfundingWithDeadline is CrowdfundingWithDeadline {
     uint time;
 
-    constructor(string memory contractName, uint targetAmountEth, uint durationInMin, address beneficiaryAddress) 
+    constructor(string memory contractName, uint targetAmountEth, uint durationInMin, address payable beneficiaryAddress) 
     CrowdfundingWithDeadline(contractName, targetAmountEth, durationInMin, beneficiaryAddress) public {
         
     }

@@ -6,7 +6,7 @@ contract CrowdfundingWithDeadline {
     string public name;
     uint public targetAmount;
     uint public fundingDeadline;
-    address public beneficiary;
+    address payable public beneficiary;
     State public state;
     mapping(address => uint) public amounts;
     bool public collected;
@@ -17,7 +17,7 @@ contract CrowdfundingWithDeadline {
         _;
     }
 
-    constructor(string memory contractName, uint targetAmountEth, uint durationInMin, address beneficiaryAddress) public {
+    constructor(string memory contractName, uint targetAmountEth, uint durationInMin, address payable beneficiaryAddress) public {
         name = contractName;
         targetAmount = targetAmountEth * 1 ether;
         fundingDeadline = currentTime() + durationInMin * 1 minutes;
@@ -42,6 +42,24 @@ contract CrowdfundingWithDeadline {
             state = State.Failed;
         } else {
             state = State.Succeeded;
+        }
+    }
+
+    function collect() public inState(State.Succeeded) {
+        if(beneficiary.send(totalCollected)) {
+            state = State.Paidout;
+        } else {
+            state = State.Failed;
+        }
+    }
+
+    function withdraw() public inState(State.Failed) {
+        require(amounts[msg.sender] > 0, "Nothing was contributed!");
+        uint contribution = amounts[msg.sender];
+        amounts[msg.sender] = 0;
+
+        if(!msg.sender.send(contribution)) {
+            amounts[msg.sender] = contribution;
         }
     }
 
