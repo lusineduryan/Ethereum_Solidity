@@ -26,12 +26,27 @@ contract CrowdfundingWithDeadline {
     }
 
     function contribute() public payable inState(State.Ongoing) {
+        require(beforeDeadline(), "No contributions after the deadline!");
         amounts[msg.sender] += msg.value;
         totalCollected += msg.value;
 
         if(totalCollected >= targetAmount) {
             collected = true;
         }
+    }
+
+    function finishCrowdfunding() public inState(State.Ongoing) {
+        require(!beforeDeadline(), "Cannot fininsh campaign before the deadline!");
+
+        if(!collected) {
+            state = State.Failed;
+        } else {
+            state = State.Succeeded;
+        }
+    }
+
+    function beforeDeadline() public view returns(bool) {
+        return currentTime() < fundingDeadline;
     }
 
     function currentTime() internal view returns(uint) {

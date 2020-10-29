@@ -7,6 +7,7 @@ contract('CrowdfundingWithDeadline', function(accounts) {
     let beneficiary = accounts[1];
 
     const ONE_ETH = 1000000000000000000;
+    const ERROR_MSG = 'VM Exception while processing transaction: revert';
 
     const ONGOING_STATE = '0';
     const FAILED_STATE = '1';
@@ -33,6 +34,9 @@ contract('CrowdfundingWithDeadline', function(accounts) {
         let targetAmount = await contract.targetAmount.call();
         expect(targetAmount.toNumber()).to.equal(ONE_ETH);
 
+        let fundingDeadline = await contract.fundingDeadline.call();
+        expect(fundingDeadline.toNumber()).to.equal(600);
+
         let actualBeneficiary = await contract.beneficiary.call();
         expect(actualBeneficiary).to.equal(beneficiary);
 
@@ -51,5 +55,39 @@ contract('CrowdfundingWithDeadline', function(accounts) {
 
         let totalCollected = await contract.totalCollected.call();
         expect(totalCollected.toNumber()).to.equal(ONE_ETH);
+    })
+
+    it('cannot contribute after deadline', async function() {
+        try{
+            await contract.setCurrentTime(601);
+            await contract.sendTransaction({
+                value: ONE_ETH,
+                from: contractCreator
+            });
+            expect.fail();
+        }
+        catch (error) {
+            expect(error.message).to.equal(ERROR_MSG);
+        };
+    })
+
+    it('crowdfunding succeeded', async function() {
+        await contract.contribute({
+            value: ONE_ETH,
+            from: contractCreator
+        });
+        await contract.setCurrentTime(601);
+        await contract.finishCrowdfunding();
+
+        let state = contract.state.call();
+        expect(state.valueOf()).to.equal(SUCCEEDED_STATE);
+    })
+
+    it('crowdfunding failed', async function() {
+        await contract.setCurrentTime(601);
+        await contract.finishCrowdfunding();
+
+        let state = contract.state.call();
+        expect(state.valueOf()).to.equal(FAILED_STATE);
     })
 });
