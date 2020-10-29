@@ -6,7 +6,7 @@ contract('CrowdfundingWithDeadline', function(accounts) {
     let contractCreator = accounts[0];
     let beneficiary = accounts[1];
 
-    const ONE_ETH = 100000000000000000;
+    const ONE_ETH = 1000000000000000000;
 
     const ONGOING_STATE = '0';
     const FAILED_STATE = '1';
@@ -38,5 +38,18 @@ contract('CrowdfundingWithDeadline', function(accounts) {
 
         let state = await contract.state.call();
         expect(state.valueOf()).to.equal(ONGOING_STATE);
+    })
+
+    it('funds are contributed', async function() {
+        await contract.contribute({
+                value: ONE_ETH,
+                from: contractCreator
+            });
+        
+        let contributed = await contract.amounts.call(contractCreator);
+        expect(contributed.toNumber()).to.equal(ONE_ETH);
+
+        let totalCollected = await contract.totalCollected.call();
+        expect(totalCollected.toNumber()).to.equal(ONE_ETH);
     })
 });
