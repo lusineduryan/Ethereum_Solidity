@@ -3,6 +3,12 @@ pragma solidity ^0.5.0;
 contract CrowdfundingWithDeadline {
     enum State { Ongoing, Failed, Succeeded, Paidout }
 
+    event CampaignFinished(
+        address addr,
+        uint totalCollected,
+        bool succeeded
+    );
+
     string public name;
     uint public targetAmount;
     uint public fundingDeadline;
@@ -43,6 +49,8 @@ contract CrowdfundingWithDeadline {
         } else {
             state = State.Succeeded;
         }
+
+        emit CampaignFinished(this, totalCollected, collected);
     }
 
     function collect() public inState(State.Succeeded) {
